@@ -1,0 +1,12 @@
+FOTOS DE TESTE DOS INTEGRANTES
+
+Coloque uma foto NOVA de cada integrante na pasta com o nome correspondente.
+Estas fotos serão usadas para avaliar o modelo somente depois de finalizar os ajustes.
+
+Use uma foto diferente daquelas em data/raw (treinamento) e da outra divisão.
+Não reutilize a mesma foto, nem recortes, espelhamentos ou versões editadas dela.
+Prefira fotografias de frente, com boa luz e de ocasiões diferentes.
+Formatos aceitos: JPG, JPEG, PNG ou WebP; até 12 MB e 24 megapixels.
+O nome do arquivo pode ser qualquer um. Não coloque fotos com várias pessoas aqui.
+
+Adicionar arquivos não inicia treinamento ou avaliação automaticamente.

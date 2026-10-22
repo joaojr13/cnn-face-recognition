@@ -1,0 +1,12 @@
+# Python 3.11. Versões das redes preservadas para carregar o modelo existente.
+streamlit==1.50.0
+pandas>=2.2,<3
+Pillow>=11,<13
+numpy>=1.26,<3
+tensorflow==2.20.0
+mtcnn==1.0.0
+torch==2.8.0
+torchvision==0.23.0
+facenet-pytorch==2.5.3
+scikit-learn>=1.5,<2
+matplotlib>=3.9,<4

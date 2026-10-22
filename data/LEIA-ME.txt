@@ -1,0 +1,33 @@
+ONDE COLOCAR AS FOTOS
+
+1. data/raw/<integrante>/sessao_01/
+   TREINAMENTO: contém as 10 fotos atuais. Elas permanecem no treinamento.
+   Não mova essas fotos para validação ou teste: o modelo já aprendeu com elas.
+
+2. data/validation/<integrante>/
+   VALIDAÇÃO: coloque UMA foto nova de cada integrante.
+   Será usada para escolher o limiar e ajustar o modelo.
+
+3. data/test/<integrante>/
+   TESTE: coloque OUTRA foto nova de cada integrante.
+   Será usada na avaliação final, depois de fixar os ajustes.
+
+4. data/unknown/
+   PESSOAS EXTERNAS: a base LFW já está organizada em validation e test.
+   Não coloque fotos dos integrantes nesta pasta.
+
+Integrantes: Diego, Fernanda, Guilherme, Joao e Samanta.
+Os nomes das pastas permanecem minúsculos para manter os identificadores internos.
+
+São duas fotos novas por integrante: uma em validation e outra em test.
+As fotos devem ser diferentes entre si e das fotos usadas no treino.
+Não é necessário renomear os arquivos. Prefira rosto de frente, boa iluminação
+ e apenas uma pessoa em cada foto. Não use cópias ou variações da mesma imagem
+em divisões diferentes. Fotos da mesma sequência são muito parecidas: prefira
+ocasiões de captura diferentes para a avaliação.
+
+O treinamento facial atual lê somente data/raw. As novas pastas ficam fora
+dessa leitura, para evitar incluir validação e teste no treinamento por engano.
+A integração dessas divisões à avaliação facial será feita após a coleta.
+Uma foto por pessoa em cada divisão é um experimento pequeno, não uma medida
+robusta de desempenho. Colocar arquivos não retreina o modelo automaticamente.

@@ -1,0 +1,22 @@
+.venv/
+.python/
+.cache/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+output/
+.streamlit/secrets.toml
+# Dados pessoais e arquivos gerados permanecem locais.
+data/**
+!data/**/
+!data/**/.gitkeep
+!data/**/LEIA-ME.txt
+!data/**/README.md
+artifacts/
+reports/
+docs/MIGRACAO.json
+.env
+.env.*
+!.env.example

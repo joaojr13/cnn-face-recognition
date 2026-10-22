@@ -97,9 +97,15 @@ def training_image(metadata, index):
 
 
 def evaluation(metadata):
+    """Resultado de rostos.avaliacao_facial (ou do fluxo MobileNet) para o modelo ativo."""
     if not metadata:
         return {"available": False}
-    if metadata.get("experimental"):
-        return {"available": False, "experimental": True, "metadata": metadata}
     metrics = read_report(metadata, "evaluation.json", None)
-    return {"available": metrics is not None, "metadata": metadata, "metrics": metrics}
+    # Um relatório de outra execução não pode ser exibido como avaliação deste modelo.
+    # Modelos experimentais só aceitam o relatório que declara o próprio run_id.
+    if metrics is not None:
+        owner = metrics.get("run_id")
+        if owner != metadata["run_id"] and (owner is not None or metadata.get("experimental")):
+            metrics = None
+    return {"available": metrics is not None, "metadata": metadata, "metrics": metrics,
+            "experimental": bool(metadata.get("experimental"))}

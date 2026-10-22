@@ -12,11 +12,32 @@ com nove entradas derivadas de cada uma e 200 épocas. O diagnóstico nas 10 ori
 acertou os 10 nomes. Essas imagens participaram do treinamento, portanto o resultado
 mede o ajuste à base, sem estimar o desempenho em fotografias novas.
 
-As fotos de teste dos integrantes estão reservadas. As pastas de validação dos integrantes
-ainda não contêm imagens, e o limiar de 90% não foi calibrado. A base externa preparada
-contém 50 fotos para validação e 50 para teste, com identidades diferentes entre as divisões.
-O reconhecimento ainda não foi executado nesse conjunto externo. Não há uma taxa medida
-de falsos aceites nem resultado final de teste para o modelo facial ativo.
+A avaliação de 22/10/2026 (`rostos.avaliacao_facial`) calibrou o limiar em 0,948 na
+validação: 10 previsões leave-one-out dos integrantes e 50 fotos LFW, com F1 macro 0,943,
+nenhum externo aceito e 1 integrante rejeitado (Samanta, pontuação 0,906).
+
+No teste independente, com o limiar calibrado, as 5 fotos novas receberam o nome correto
+(pontuações de 0,966 a 0,999) e as 50 fotos externas foram rejeitadas: acurácia 100%,
+F1 macro 1,000. Com o limiar provisório de 0,90, o mesmo teste teria aceitado um externo
+como Joao (pontuação 0,936): acurácia 98,2%, 2% de falsos aceites. A validação cruzada
+acertou as 15 fotos dos integrantes, com pontuação mínima de 0,954.
+
+Esses números vêm de amostras pequenas. A distância entre o integrante com menor
+pontuação no teste (0,966) e o externo com maior pontuação (0,936) é de 3 pontos, e o limiar
+fica entre os dois. Fotos com outra iluminação ou pose podem cair abaixo do limiar.
+
+### Avaliação sem fotos novas
+
+Como não há mais fotos para treinar, `rostos/avaliacao_facial.py` usa as imagens existentes
+em três papéis separados. O limiar é escolhido na validação: cada foto de treino é prevista
+por uma camada final treinada sem ela (leave-one-out), junto com as 50 fotos LFW de
+validação. O teste independente aplica o modelo ativo, sem alterações, às 5 fotos de
+`data/test/` e às 50 fotos LFW de teste. A validação cruzada complementar prevê cada uma
+das 15 fotos dos integrantes com uma camada treinada nas outras 14.
+
+O teste tem uma foto por integrante, então o recall de cada pessoa só pode ser 0% ou 100%.
+A validação cruzada dá três exemplos por pessoa, mas reutiliza as fotos de teste e não
+mede a rejeição de externos. Os dois resultados devem ser apresentados juntos, com essas ressalvas.
 
 As contagens atuais da execução são registradas em `artifacts/active.json` e nos relatórios
 associados. A galeria reproduz as fotos desse registro, não todas as imagens que possam

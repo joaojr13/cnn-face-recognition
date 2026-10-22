@@ -19,8 +19,11 @@ with st.sidebar:
         st.caption('Modelo ativo')
         st.write(metadata['architecture'])
         st.caption(f"{len(metadata['labels'])} integrantes · {metadata.get('training_images', '?')} fotos")
-        st.caption(f"Limiar: {metadata['threshold']:.0%}")
-        if metadata.get('experimental'):
+        state = 'calibrado na validação' if metadata.get('threshold_calibrated') else 'provisório'
+        st.caption(f"Limiar: {metadata['threshold']:.1%} ({state})")
+        if metadata.get('evaluation_available'):
+            st.caption('Limiar calibrado · teste pequeno na página Avaliação')
+        elif metadata.get('experimental'):
             st.warning('Experimento sem teste independente')
     else:
         st.info('Somente detecção: modelo ainda não treinado.')

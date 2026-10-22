@@ -106,8 +106,8 @@ A comparação abaixo usa a pontuação e o limiar desta execução. A distânci
 
 Desconhecido é uma regra de rejeição, não uma pessoa aprendida pela rede. Um integrante
 pode ser rejeitado, e uma pessoa externa pode receber uma pontuação alta e ser aceita.
-O limiar do modelo facial atual ainda é provisório: a calibração e a avaliação independente
-não foram concluídas. Diminuir o corte pode aceitar mais integrantes e também mais pessoas externas."""),
+O limiar foi escolhido na validação, com integrantes e pessoas externas, e conferido em um
+teste pequeno (página Avaliação). Diminuir o corte pode aceitar mais integrantes e também mais pessoas externas."""),
 ]
 
 AVALIACAO = """A avaliação compara a resposta do modelo com o nome correto de cada foto. O significado
@@ -124,6 +124,40 @@ Ter arquivos em pastas de validação e teste não significa que essa avaliaçã
 As seções abaixo identificam quais resultados estão disponíveis para o modelo ativo.
 Versões editadas de uma mesma foto são relacionadas; distribuí-las entre treino e teste
 poderia produzir resultados excessivamente otimistas."""
+
+PROTOCOLO = """Sem fotos novas para treinar, a avaliação reaproveita as imagens existentes
+em três momentos, sem misturar o que escolhe ajustes com o que mede o resultado:
+
+1. **Validação (escolha do limiar).** Cada uma das 10 fotos de treino é prevista por uma
+   camada final treinada do zero **sem ela** (*leave-one-out*), com o mesmo procedimento do
+   modelo ativo. Junto com 50 fotos de 25 pessoas externas (LFW), essas previsões definem o
+   limiar: o maior F1 macro aceitando no máximo 5% dos externos.
+2. **Teste independente.** O modelo ativo, sem nenhuma alteração, analisa uma foto nova de
+   cada integrante e 50 fotos de outras 25 pessoas externas. Essas fotos não participam
+   do treino nem da escolha do limiar.
+3. **Validação cruzada (complementar).** As 3 fotos de cada integrante (treino + teste) são
+   previstas uma de cada vez por uma camada treinada com as outras 14. Isso dá mais
+   exemplos por pessoa para a matriz, mas não avalia o modelo ativo."""
+
+EQUILIBRIO = """O softmax sempre divide 100% entre os cinco integrantes. Por isso, até o rosto de uma
+pessoa de fora recebe uma pontuação alta para alguém do grupo. O **limiar** decide quando
+a maior pontuação é alta o bastante para aceitar o nome; abaixo dele, a resposta é
+**Desconhecido**. Os dois erros puxam em direções opostas:
+
+- **Limiar baixo:** aceita os integrantes, mas também deixa entrar pessoas externas com o nome de alguém do grupo.
+- **Limiar alto:** barra as pessoas externas, mas passa a recusar fotos dos próprios integrantes.
+
+Não existe um valor que elimine os dois erros em qualquer foto. O limiar foi escolhido
+com uma regra definida **antes** de olhar o teste, usando só a validação:
+
+1. **Segurança:** só valem limiares que aceitam no máximo 5% dos externos da validação.
+2. **Equilíbrio:** entre esses, vence o de maior **F1 macro**, a média do F1 das cinco
+   pessoas e da classe Desconhecido.
+3. **Desempate:** em caso de empate, vence o menor limiar, que recusa menos integrantes em fotos novas.
+
+No F1 macro, um externo aceito custa caro: reduz a precisão do integrante cujo nome foi
+dado **e** o recall de Desconhecido. Um integrante recusado reduz o recall dele e a
+precisão de Desconhecido. A regra pesa os dois erros na mesma conta."""
 
 METRICAS = """Na **matriz de confusão**, cada linha corresponde à pessoa correta e cada coluna à resposta
 do modelo. Cada número conta quantas fotos tiveram aquela combinação. A diagonal reúne

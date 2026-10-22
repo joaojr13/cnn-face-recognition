@@ -60,3 +60,8 @@ def show_steps(result):
                     message = f"{display_name(top)}: {face['score']:.2%} {sign} {face['threshold']:.2%} → {display_name(face['label'])}"
                     (st.success if face['accepted'] else st.warning)(message)
                     st.caption(f"Distância ao limiar: {100 * (face['score'] - face['threshold']):+.2f} pontos percentuais.")
+                    if (result.get('model') or {}).get('threshold_calibrated'):
+                        st.caption('Este limiar foi escolhido na validação, equilibrando integrantes recusados e '
+                                   'pessoas externas aceitas. A explicação completa está na página Avaliação.')
+                    else:
+                        st.caption('Limiar provisório: ainda não foi calibrado para este modelo.')

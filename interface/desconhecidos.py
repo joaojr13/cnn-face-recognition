@@ -14,13 +14,13 @@ def unknown_dataset_panel():
     if not summary['available']:
         st.info('Ainda não há uma base externa preparada.')
         return
-    labels = {'validation':'Validação — para ajustar o limiar', 'test':'Teste — reservado para a avaliação final'}
+    labels = {'validation':'Validação — para ajustar o limiar', 'test':'Teste — usado uma vez na avaliação final'}
     st.dataframe(pd.DataFrame([{'Divisão':labels[row['split']], 'Pessoas':row['people'], 'Fotos':row['images']}
                               for row in summary['splits']]), hide_index=True, width='stretch')
     st.markdown(f"Origem: [LFW, espelho usado pelo scikit-learn]({summary['source_page']}). "
                 'As pessoas de validação e teste são diferentes. O conteúdo de cada arquivo foi conferido por um código de verificação, chamado hash.')
     st.info('Estas fotos não entram no treinamento dos cinco integrantes. Servem para avaliar a rejeição de pessoas externas. '
-            'Ainda não executamos o reconhecimento neste conjunto nem alteramos o limiar.')
+            'A validação ajudou a escolher o limiar; o teste mediu os falsos aceites depois, sem alterar a escolha. Resultados na página Avaliação.')
     st.caption('A preparação exigiu um rosto detectável por foto. Este subconjunto não mede falhas de detecção no LFW completo '
                'nem representa todas as condições da webcam. Uma identidade externa ao grupo pode ter aparecido no pré-treinamento da CNN.')
     with st.expander('Preparação de uma foto da validação externa'):
@@ -36,4 +36,4 @@ def unknown_dataset_panel():
             st.caption('Só preparação da imagem: nenhuma pontuação de identidade foi calculada.')
         except (ValueError, OSError) as exc:
             st.error(str(exc))
-    st.caption('As fotos de teste permanecem reservadas para avaliar o modelo depois de fixar os ajustes com a validação. Isso evita usar as mesmas previsões para escolher o limiar e medir seu resultado.')
+    st.caption('As fotos de teste não participaram da escolha do limiar: serviram só para medir o resultado depois. Isso evita usar as mesmas previsões para escolher o limiar e medir seu resultado.')

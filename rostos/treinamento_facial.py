@@ -93,6 +93,61 @@ def training_variants(image):
     return np.stack([np.asarray(item) for item in variants])
 
 
+def head_class_weights(targets, class_count):
+    """Compensa quantidades desiguais por integrante, como no treinamento original."""
+    counts = torch.bincount(targets, minlength=class_count).float()
+    if bool((counts == 0).any()):
+        raise ValueError("Cada integrante precisa de ao menos uma foto no treinamento da camada final.")
+    return len(targets) / (class_count * counts)
+
+
+def optimize_head(classifier, features, targets, class_weights, epochs, log=False):
+    """Mesmo laço de otimização usado pelo modelo ativo: entropia cruzada + AdamW."""
+    criterion = nn.CrossEntropyLoss(weight=class_weights)
+    optimizer = torch.optim.AdamW(classifier.parameters(), lr=0.03, weight_decay=0.001)
+    classifier.train()
+    losses = []
+    for epoch in range(epochs):
+        optimizer.zero_grad()
+        loss = criterion(classifier(features), targets)
+        loss.backward()
+        optimizer.step()
+        losses.append(float(loss.detach()))
+        if log and (epoch == 0 or (epoch + 1) % 25 == 0):
+            print(f"Época {epoch + 1}/{epochs} · perda de treino: {loss.item():.5f}", flush=True)
+    classifier.eval()
+    return losses
+
+
+def fit_head(features, targets, class_count, epochs=200, seed=42):
+    """Treina uma nova camada final sobre características já calculadas pela base congelada.
+
+    Usada na validação cruzada: cada rodada aprende sem a foto que será prevista.
+    """
+    torch.manual_seed(seed)
+    features = torch.as_tensor(np.asarray(features), dtype=torch.float32)
+    targets = torch.as_tensor(np.asarray(targets), dtype=torch.long)
+    head = nn.Sequential(nn.Dropout(0.1), nn.Linear(features.shape[1], class_count))
+    optimize_head(head, features, targets, head_class_weights(targets, class_count), epochs)
+    return head
+
+
+def head_probabilities(head, features):
+    head.eval()
+    with torch.inference_mode():
+        features = torch.as_tensor(np.asarray(features), dtype=torch.float32)
+        return head(features).softmax(dim=1).cpu().numpy()
+
+
+def backbone_features(model, images, batch_size=12):
+    """Executa a base convolucional congelada: 160 × 160 × 3 → 512 características."""
+    model.eval()
+    images = np.asarray(images)
+    with torch.inference_mode():
+        return torch.cat([model.backbone(face_tensor(images[i:i + batch_size]))
+                          for i in range(0, len(images), batch_size)]).cpu().numpy()
+
+
 def train_specialized(epochs=200, threshold=0.9, activate=False):
     from .experimento_mobilenet import experimental_records
     from .treinamento_mobilenet import prepare_records
@@ -120,18 +175,8 @@ def train_specialized(epochs=200, threshold=0.9, activate=False):
         features = torch.cat([model.backbone(face_tensor(augmented[i:i + 12]))
                               for i in range(0, len(augmented), 12)])
     class_weights = torch.tensor([len(records) / (len(labels) * counts[label]) for label in labels])
-    criterion = nn.CrossEntropyLoss(weight=class_weights)
-    optimizer = torch.optim.AdamW(model.classifier.parameters(), lr=0.03, weight_decay=0.001)
     model.train()
-    losses = []
-    for epoch in range(epochs):
-        optimizer.zero_grad()
-        loss = criterion(model.classifier(features), targets)
-        loss.backward()
-        optimizer.step()
-        losses.append(float(loss.detach()))
-        if epoch == 0 or (epoch + 1) % 25 == 0:
-            print(f"Época {epoch + 1}/{epochs} · perda de treino: {loss.item():.5f}", flush=True)
+    losses = optimize_head(model.classifier, features, targets, class_weights, epochs, log=True)
     model.eval()
     path = run_dir / "model.pt"
     torch.save(model.state_dict(), path)
@@ -169,6 +214,8 @@ def train_specialized(epochs=200, threshold=0.9, activate=False):
     if activate:
         activate_run(metadata)
     print(f"Execução salva: {run_id}; ativa: {activate}", flush=True)
+    print(f"Limiar provisório {threshold}: um modelo novo precisa de nova calibração. Execute "
+          "`.venv/bin/python -m rostos.avaliacao_facial --aplicar-limiar` após ativá-lo.", flush=True)
     for result in diagnostics:
         print(f"Foto de treino {result['training_label']}: {result['label']} ({result['score']:.4f})")
     return metadata

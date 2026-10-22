@@ -8,9 +8,10 @@ A versão incluída usa MTCNN para detecção e InceptionResnetV1 pré-treinada 
 para extrair características. A base convolucional fica congelada e uma camada neural
 final foi treinada para Diego, Fernanda, Guilherme, Joao e Samanta.
 
-**Estado real:** 10 fotos originais (duas por integrante), modelo experimental, limiar provisório de 90%, sem
-teste independente. Matriz de confusão e métricas disponíveis são diagnóstico das fotos
-de treinamento. Elas não medem generalização. A migração não retreinou nem alterou os pesos.
+**Estado real:** 10 fotos originais (duas por integrante), modelo experimental. A matriz de
+confusão e as métricas de teste vêm de `rostos/avaliacao_facial.py` (veja abaixo): limiar
+calibrado na validação, teste com uma foto nova por integrante e 50 pessoas externas, e
+validação cruzada complementar. O diagnóstico nas fotos de treino continua separado.
 
 ## Conteúdo do repositório
 
@@ -89,7 +90,11 @@ não controla acesso: configure a visibilidade no provedor se necessário.
 ```sh
 .venv/bin/python scripts/import_images.py /pasta/com/subpastas/por/pessoa --session sessao_02
 .venv/bin/python -m rostos.treinamento_facial --epochs 200 --threshold 0.9 --activate
+.venv/bin/python -m rostos.avaliacao_facial --aplicar-limiar
 ```
+
+O limiar calibrado vale para os pesos avaliados. Um modelo novo começa com o limiar
+provisório e precisa da avaliação acima para recalibrar.
 
 Esse comando executa **novo experimento FaceNet em toda a base**, sem teste independente.
 Ele pode baixar os pesos pré-treinados no primeiro treinamento. Não é executado ao iniciar
@@ -101,12 +106,30 @@ anterior. O primeiro tem separação de treino/validação/teste, calibração e
 mas usa **MobileNetV2**, não o FaceNet ativo. Não confunda suas capacidades com avaliações
 já realizadas no modelo facial. Não foram trazidos pesos de experimentos antigos.
 
+## Avaliar o modelo ativo (matriz de confusão e métricas)
+
+Sem fotos novas para treinar, a avaliação reaproveita as imagens existentes sem misturar
+escolha de ajustes com medição:
+
+1. **Limiar (validação):** leave-one-out nas 10 fotos de treino + 50 fotos LFW de validação.
+2. **Teste independente:** modelo ativo em `data/test/<integrante>/` + 50 fotos LFW de teste.
+3. **Validação cruzada (complementar):** leave-one-out com as 15 fotos dos integrantes.
+
+```sh
+.venv/bin/python -m rostos.avaliacao_facial --aplicar-limiar
+```
+
+O comando não altera os pesos. Ele grava `reports/<run_id>/evaluation.json`, as matrizes e
+o gráfico de pontuações em PNG. Com `--aplicar-limiar`, o limiar calibrado substitui o
+provisório no modelo ativo (o anterior fica registrado). A página **Avaliação** mostra tudo.
+
 ## Estudar, validar e publicar
 
 - [Como o reconhecimento funciona](docs/COMO_FUNCIONA.md)
 - [Mapa do código](docs/MAPA_DO_CODIGO.md)
 - [Validação e limitações](docs/VALIDACAO.md)
-- [Deploy com Streamlit](docs/DEPLOY.md)
+- [Deploy com Streamlit](docs/DEPLOY.md): o modelo e o limiar calibrado vão para um
+  repositório **privado** montado por `scripts/preparar_deploy.py`; este repositório continua sem fotos e pesos.
 
 ```sh
 uv pip install --python .venv/bin/python -r requirements-dev.txt
@@ -141,12 +164,27 @@ As cinco pastas em cada divisão são `diego`, `fernanda`, `guilherme`, `joao` e
 Use fotos diferentes das que participaram do treino; versões da mesma foto devem
 permanecer na mesma divisão. Veja [as instruções da coleta](data/LEIA-ME.txt).
 Essas pastas ficam fora da leitura do treinamento facial experimental, que continua
-usando somente `data/raw`. A avaliação facial será integrada a elas após a coleta.
+usando somente `data/raw`. `data/test/` é usada por `rostos.avaliacao_facial`; sem fotos
+em `data/validation/`, a validação dos integrantes é feita por leave-one-out no treino.
 
 ## Novo treinamento — 21/10/2026
 
 Modelo ativo: `facenet_experimental_20261022T023553Z_53a142`. Treinamento refeito com 10 fotos,
-duas por integrante, 90 entradas aumentadas e 200 épocas. Limiar provisório 0,90.
-Cinco fotos estão reservadas em `data/test/`; `data/validation/` ainda não contém fotos
-dos integrantes. O teste não foi executado e o limiar não foi calibrado. O diagnóstico
-acertou 10/10 imagens de treinamento; isso não estima desempenho em novas fotos.
+duas por integrante, 90 entradas aumentadas e 200 épocas. O diagnóstico acertou 10/10
+imagens de treinamento; isso não estima desempenho em novas fotos.
+
+## Avaliação — 22/10/2026
+
+`rostos.avaliacao_facial --aplicar-limiar`, sem alterar os pesos:
+
+| Resultado | Limiar provisório 0,90 | Limiar calibrado 0,948 |
+|---|---|---|
+| Teste: integrantes reconhecidos (5 fotos novas) | 5/5 | 5/5 |
+| Teste: externos aceitos por engano (50 fotos LFW) | 1 (2%) | 0 (0%) |
+| Teste: acurácia / F1 macro | 98,2% / 0,943 | 100% / 1,000 |
+| Validação: integrantes rejeitados (leave-one-out) | — | 1/10 (Samanta, 0,906) |
+| Validação cruzada (15 fotos dos integrantes) | — | 15/15, F1 macro 1,000 |
+
+O limiar calibrado ficou ativo. A margem é pequena: no teste, o integrante com menor
+pontuação teve 0,966 e o externo com maior pontuação teve 0,936. Com uma foto por pessoa,
+o recall de cada integrante no teste só pode ser 0% ou 100%.

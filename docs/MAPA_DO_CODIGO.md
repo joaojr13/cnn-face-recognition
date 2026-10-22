@@ -50,7 +50,25 @@ relativos à raiz do projeto; mover a pasta não deve quebrar a galeria.
 `estudo.training_image` limita a leitura à pasta da base e confere o hash antes de reproduzir
 recorte e entrada. `estudo.summarize_training` constrói a matriz e as métricas de treino.
 Ela não inventa uma taxa para desconhecidos quando não há exemplos externos.
-`estudo.evaluation` impede que um experimento exponha um relatório como teste independente.
+`estudo.evaluation` só exibe um `evaluation.json` que declare o `run_id` do modelo ativo.
+
+## Avaliação sem fotos novas
+
+`avaliacao_facial.py` gera o `evaluation.json` do modelo ativo sem alterar seus pesos:
+
+| Etapa | Função | O que faz |
+|---|---|---|
+| Dados | `member_test_records`, `external_records`, `check_no_overlap` | fotos de `data/test/`, base LFW conferida e bloqueio de foto repetida entre treino e teste |
+| Preparação | `face_inputs` | mesmo recorte e padronização do treino; usa a caixa registrada quando existe |
+| Características | `treinamento_facial.backbone_features` | base congelada: 160 × 160 × 3 → 512 números por foto e variação |
+| Leave-one-out | `leave_one_out_probabilities` + `treinamento_facial.fit_head` | cada foto é prevista por uma camada final treinada sem ela, com o mesmo laço `optimize_head` do modelo ativo |
+| Limiar | `treinamento_mobilenet.calibrate` | maior F1 macro na validação aceitando no máximo 5% dos externos |
+| Métricas | `metrics_block` (usa `report_metrics`) | matriz, precisão, recall, F1, suporte, rejeições e falsos aceites |
+| Figuras | `graficos.confusion_figure`, `graficos.score_figure` | PNGs em `reports/<run_id>/`, os mesmos desenhados na interface |
+| Limiar no modelo | `apply_threshold` | com `--aplicar-limiar`, grava o limiar calibrado e guarda o provisório |
+
+`run_protocol` recebe características prontas e funções de treino e previsão. Por isso
+os testes conseguem verificar o protocolo com dados sintéticos, sem carregar a CNN.
 
 ## Localização das responsabilidades
 
@@ -58,7 +76,8 @@ Ela não inventa uma taxa para desconhecidos quando não há exemplos externos.
 |---|---|
 | Onde altero textos sem mexer no modelo? | `interface/textos.py` e `docs/` |
 | Onde estão os limites de upload e tamanho? | `rostos/config.py` |
-| Onde está o limiar ativo? | `artifacts/active.json` (registrado pelo treinamento) |
+| Onde está o limiar ativo? | `artifacts/active.json` (treinamento; calibrado por `avaliacao_facial --aplicar-limiar`) |
+| Onde estão a matriz e as métricas de teste? | `reports/<run_id>/evaluation.json` e PNGs, página Avaliação |
 | Onde explicamos um rosto individual? | `interface/passos.py` |
 | Onde ficam as fotos utilizadas? | `data/raw/`, referenciadas no manifesto da execução |
 | Como evitamos resultado antigo após trocar a foto? | `interface/sessao.py` |

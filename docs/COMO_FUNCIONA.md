@@ -96,8 +96,33 @@ A camada final calcula um valor para cada integrante. A função softmax transfo
 valores em pontuações que somam 100%. O nome com a maior pontuação é o candidato.
 
 O programa aceita esse candidato apenas se sua pontuação atingir o limiar configurado.
-Em um exemplo ilustrativo, uma pontuação de 89,5% com limiar de 90% resulta em Desconhecido.
-A diferença é de −0,5 ponto percentual, por isso a comparação não passa pelo corte.
+O limiar ativo é 94,8%. Em um exemplo ilustrativo, uma pontuação de 94,0% resulta em
+Desconhecido: a diferença é de −0,8 ponto percentual, por isso não passa pelo corte.
+
+### Como o limiar de 94,8% foi escolhido
+
+Um limiar baixo aceita integrantes, mas também pessoas externas com o nome de alguém do
+grupo. Um limiar alto barra externos, mas recusa fotos dos integrantes. A escolha usou só
+a validação e uma regra fixada antes do teste. Primeiro, aceitar no máximo 5% dos externos.
+Depois, entre esses limiares, ficar com o de maior F1 macro, a média das cinco pessoas e
+de Desconhecido. Em caso de empate, vence o menor limiar.
+
+Na validação, o integrante com menor pontuação teve 0,906 (Samanta). O externo com maior
+pontuação teve 0,948, para Guilherme. Como o externo ficou acima, nenhum limiar separa
+tudo sem erro:
+
+| Limiar | Integrantes aceitos | Externos aceitos | F1 macro |
+|---|---|---|---|
+| 0,900 (provisório) | 10/10 | 3/50 | 0,895 |
+| 0,906 (aceita todos os integrantes) | 10/10 | 2/50 | 0,930 |
+| **0,948 (calibrado)** | 9/10 | 0/50 | **0,943** |
+| 0,990 | 9/10 | 0/50 | 0,943 |
+
+No F1 macro, um externo aceito reduz a precisão do integrante cujo nome recebeu e o recall
+de Desconhecido. Por isso, dois externos aceitos pesaram mais que uma foto recusada. Em 0,990,
+o F1 empata, e o desempate fica com 0,948. No teste, que não participou da escolha, 0,948
+aceitou os 5 integrantes e nenhum dos 50 externos. O provisório de 0,90 teria aceitado um externo.
+A página Avaliação mostra essas curvas e permite simular outros limiares.
 
 Desconhecido não é uma sexta identidade aprendida pela rede: é a recusa da previsão.
 Um integrante pode ser recusado por pose, iluminação, diferenças em relação às fotos
@@ -121,13 +146,13 @@ de fixar essas escolhas. Usar uma foto para ajustar o sistema e depois tratá-la
 avaliação independente produz uma conclusão excessivamente otimista.
 
 O modelo facial atual foi treinado com 10 fotos, duas de cada integrante. As 90 entradas
-com variações serviram ao treino; o diagnóstico usa as 10 originais. Há fotos dos integrantes
-reservadas para teste, mas ainda falta a validação dos integrantes e a avaliação final
-não foi executada. O limiar de 90% permanece provisório.
+com variações serviram ao treino; o diagnóstico usa as 10 originais.
 
-A base externa LFW contém 100 fotos: 50 para validação e 50 para teste, com pessoas
-diferentes entre as divisões. Ela foi preparada e conferida, mas ainda não foi usada para
-medir falsos aceites do modelo. A existência dos arquivos não equivale a um resultado de avaliação.
+Sem fotos de validação dos integrantes, a validação usa *leave-one-out*: cada foto de treino
+é prevista por uma camada final treinada sem ela. Essas previsões e 50 fotos LFW de validação
+definiram o limiar de 0,948. O teste usou uma foto nova de cada integrante e 50 fotos LFW de
+outras pessoas, sem participar da escolha do limiar. Os resultados estão em
+[Validação e limitações](VALIDACAO.md) e na página Avaliação.
 
 ## Por que o resultado pode falhar
 

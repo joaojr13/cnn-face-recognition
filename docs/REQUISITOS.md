@@ -12,7 +12,7 @@ pelo grupo é 22/11.
 | Padronização | RGB 160 × 160, proporção preservada, preenchimento preto e normalização numérica. | Pose, iluminação e qualidade da fotografia ainda variam. |
 | Imagens intermediárias | Original preparada, caixas, recorte, entrada e oito mapas reais de ativação. | Os mapas mostram respostas da rede; não explicam sozinhos a decisão. |
 | Registro do treinamento | Manifesto com arquivos, rótulos, hashes e recortes. | A pasta da sessão não comprova a ocasião de captura. |
-| Matriz e métricas | Diagnóstico das 10 fotos de treino do modelo ativo. | Teste independente e calibração do limiar ainda não concluídos. |
+| Matriz e métricas | `rostos/avaliacao_facial.py`: limiar calibrado na validação, teste independente (5 fotos novas + 50 externos) e validação cruzada leave-one-out (15 fotos). Diagnóstico de treino separado. | Teste pequeno: uma foto nova por integrante; recall por pessoa só pode ser 0% ou 100%. |
 | Rejeição de externos | Resposta Desconhecido quando a pontuação fica abaixo do limiar. | Pessoas externas também podem receber pontuações altas. |
 
 As orientações fornecidas ao grupo sugeriram suavização e equalização em caso de

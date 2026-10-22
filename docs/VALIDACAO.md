@@ -49,9 +49,8 @@ com redes reais. Foram comparadas 14 imagens, contendo 18 rostos, entre a versã
 e a nova: caixas, decisões, pontuações, hashes de entrada e imagens intermediárias foram
 preservados. A tolerância numérica das pontuações foi de 1e-6.
 
-Naquela migração, a base tinha 13 fotos e o modelo não foi retreinado. `MIGRACAO.json`
-registra os hashes desse estado histórico. Depois, o usuário reorganizou a base e um novo
-treinamento utilizou as 10 fotos atuais. O registro de migração não descreve essa nova base.
+Naquela migração, a base tinha 13 fotos e o modelo não foi retreinado. Depois, o usuário
+reorganizou a base e um novo treinamento utilizou as 10 fotos atuais.
 
 A preparação da base externa passou por 18 testes selecionados de integridade, separação
 e interface. Após o treinamento mais recente, quatro testes de interface passaram;

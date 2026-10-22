@@ -15,8 +15,7 @@ de treinamento. Elas não medem generalização. A migração não retreinou nem
 ## Conteúdo do repositório
 
 Este repositório público contém código, documentação e estrutura de pastas.
-Fotos, modelos treinados, relatórios individuais e o registro local da migração
-não são versionados. Os resultados descritos abaixo pertencem à execução local.
+Fotos, modelos treinados e relatórios individuais não são versionados. Os resultados descritos abaixo pertencem à execução local.
 Para reconhecer rostos após clonar o repositório, é necessário fornecer as fotos
 e treinar o modelo, ou instalar os artefatos autorizados por um canal privado.
 
@@ -108,7 +107,6 @@ já realizadas no modelo facial. Não foram trazidos pesos de experimentos antig
 - [Mapa do código](docs/MAPA_DO_CODIGO.md)
 - [Validação e limitações](docs/VALIDACAO.md)
 - [Deploy com Streamlit](docs/DEPLOY.md)
-- O registro da migração fica apenas na instalação local (`docs/MIGRACAO.json`).
 
 ```sh
 uv pip install --python .venv/bin/python -r requirements-dev.txt

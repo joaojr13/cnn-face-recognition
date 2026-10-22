@@ -16,7 +16,6 @@ data/**
 !data/**/README.md
 artifacts/
 reports/
-docs/MIGRACAO.json
 .env
 .env.*
 !.env.example

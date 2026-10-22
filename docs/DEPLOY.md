@@ -31,10 +31,10 @@ As fotos de `data/test/`, `.venv`, `.cache` e `output` não vão.
 
 ### Primeira publicação
 
-1. No GitHub, crie um repositório **privado** e vazio (por exemplo, `cnn-face-recognition-deploy`).
+1. No GitHub, crie um repositório **privado** e vazio. O do grupo é `joaojr13/cnn-face-recognition-config`.
 2. Na pasta do projeto:
    ```sh
-   .venv/bin/python scripts/preparar_deploy.py --remote https://github.com/<usuario>/cnn-face-recognition-deploy.git --push
+   .venv/bin/python scripts/preparar_deploy.py --remote https://github.com/joaojr13/cnn-face-recognition-config.git --push
    ```
    A cópia fica em `../ap-02-deploy-privado`, com um commit e um `DEPLOY_PRIVADO.md`.
    Se o repositório foi criado com README ou licença, acrescente `--substituir-remoto`: o pacote
